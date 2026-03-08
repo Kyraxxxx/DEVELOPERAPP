@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Dev | Controle de Acesso</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            margin: 0; padding: 0; background: #0a0a0a; color: #fff; 
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            display: flex; align-items: center; justify-content: center; height: 100dvh;
+        }
+        .admin-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px; border-radius: 30px; width: 90%; max-width: 400px;
+            text-align: center; backdrop-filter: blur(20px);
+        }
+        h1 { font-size: 20px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 30px; }
+        
+        .status-box {
+            padding: 20px; border-radius: 20px; background: rgba(255, 255, 255, 0.03);
+            margin-bottom: 30px; border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .status-label { font-size: 11px; text-transform: uppercase; color: rgba(255, 255, 255, 0.4); margin-bottom: 8px; }
+        .status-value { font-size: 18px; font-weight: 900; }
+        .status-value.blocked { color: #ff3b30; }
+        .status-value.active { color: #00ff78; }
+
+        .btn-toggle {
+            width: 100%; height: 60px; border: none; border-radius: 20px;
+            font-size: 14px; font-weight: 900; text-transform: uppercase;
+            cursor: pointer; transition: 0.3s;
+        }
+        .btn-block { background: #ff3b30; color: #fff; }
+        .btn-unblock { background: #00ff78; color: #000; }
+        
+        #login-screen { 
+            position: fixed; inset: 0; background: #000; z-index: 100;
+            display: flex; align-items: center; justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="admin-card">
+            <h1>Dev Access</h1>
+            <input type="password" id="dev-pass" placeholder="Senha do Desenvolvedor" 
+                style="width: 100%; height: 55px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 15px; color: #fff; text-align: center; margin-bottom: 20px; outline: none;">
+            <button onclick="login()" class="btn-toggle btn-unblock">Entrar</button>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <h1>Painel Admin</h1>
+        <div class="status-box">
+            <div class="status-label">Status do Painel Barbeiro</div>
+            <div id="status-display" class="status-value">Carregando...</div>
+        </div>
+        <button id="main-btn" onclick="toggleStatus()" class="btn-toggle">Aguarde...</button>
+        <div style="margin-top: 20px; font-size: 11px; color: rgba(255,255,255,0.3);"> railanebastossouza@gmail.com </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA4afcARxM7UxR2ya1lnQdfSfmcBzYe8pk",
+            authDomain: "barbearia-cb1f9.firebaseapp.com",
+            databaseURL: "https://barbearia-cb1f9-default-rtdb.firebaseio.com",
+            projectId: "barbearia-cb1f9",
+            storageBucket: "barbearia-cb1f9.firebasestorage.app",
+            messagingSenderId: "698750683688",
+            appId: "1:698750683688:web:883711c2a1a14b081e431d",
+            measurementId: "G-E3NMJV0BVY"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let currentBlocked = false;
+
+        function login() {
+            if(document.getElementById('dev-pass').value === 'dev99') {
+                document.getElementById('login-screen').style.display = 'none';
+            } else {
+                alert('Acesso negado!');
+            }
+        }
+
+        db.ref('config/isBlocked').on('value', (snap) => {
+            currentBlocked = snap.val() || false;
+            const statusDisp = document.getElementById('status-display');
+            const mainBtn = document.getElementById('main-btn');
+
+            if (currentBlocked) {
+                statusDisp.innerText = "BLOQUEADO";
+                statusDisp.className = "status-value blocked";
+                mainBtn.innerText = "LIBERAR ACESSO";
+                mainBtn.className = "btn-toggle btn-unblock";
+            } else {
+                statusDisp.innerText = "ATIVO";
+                statusDisp.className = "status-value active";
+                mainBtn.innerText = "BLOQUEAR PAINEL";
+                mainBtn.className = "btn-toggle btn-block";
+            }
+        });
+
+        function toggleStatus() {
+            db.ref('config/isBlocked').set(!currentBlocked);
+        }
+    </script>
+</body>
+</html>
